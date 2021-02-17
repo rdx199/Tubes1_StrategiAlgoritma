@@ -1,5 +1,6 @@
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
 public class Map {
@@ -35,7 +36,7 @@ public class Map {
         }
     }
 
-    public Map(JSONObject json) {
+    public Map(JSONObject json) throws JSONException {
         int mapSize = json.getInt("mapSize");
         width = height = mapSize;
 
@@ -83,7 +84,7 @@ public class Map {
         return new BBox(width, height);
     }
 
-    public void parseJSON(JSONArray mapData) {
+    public void parseJSON(JSONArray mapData) throws JSONException {
         for (int i_ = 0; i_ < mapData.length(); i_++) {
             JSONArray rowData = mapData.getJSONArray(i_);
             for (int j_ = 0; j_ < rowData.length(); j_++) {
