@@ -1,7 +1,7 @@
 
 public class Command {
 
-    public enum CommandType {
+    public static enum CommandType {
         NOTHING, MOVE, DIG, SHOOT, BANANA, SNOWBALL,
     };
 

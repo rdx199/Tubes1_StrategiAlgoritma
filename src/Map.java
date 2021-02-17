@@ -6,7 +6,7 @@ import org.json.JSONObject;
 public class Map {
     private int width, height;
 
-    public enum CellType {
+    public static enum CellType {
         DEEP_SPACE, AIR, DIRT, LAVA, AIR_HPACK, DIRT_HPACK, LAVA_HPACK,
     };
 
