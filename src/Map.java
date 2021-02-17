@@ -46,7 +46,7 @@ public class Map {
             data[i] = CellType.DEEP_SPACE;
         }
 
-        parseMap(json.getJSONArray("map"));
+        parseJSON(json.getJSONArray("map"));
     }
 
     public int getWidth() {
@@ -83,7 +83,7 @@ public class Map {
         return new BBox(width, height);
     }
 
-    public void parseMap(JSONArray mapData) {
+    public void parseJSON(JSONArray mapData) {
         for (int i_ = 0; i_ < mapData.length(); i_++) {
             JSONArray rowData = mapData.getJSONArray(i_);
             for (int j_ = 0; j_ < rowData.length(); j_++) {
