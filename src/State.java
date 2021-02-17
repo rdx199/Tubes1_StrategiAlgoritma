@@ -28,6 +28,15 @@ public class State {
         return players;
     }
 
+    public Player getPlayerByID(int id) {
+        for (Player p : players) {
+            if (p.getID() == id) {
+                return p;
+            }
+        }
+        return null;
+    }
+
     public int getMyPlayerID() {
         return myPlayerID;
     }
@@ -38,6 +47,17 @@ public class State {
 
     public int getLavaDamage() {
         return lavaDamage;
+    }
+
+    public Worm occupier(final Coord pos) {
+        for (Player p : players) {
+            for (Worm w : p.getWorms()) {
+                if (w.getPos() == pos) {
+                    return w;
+                }
+            }
+        }
+        return null;
     }
 
     public void parseJSON(JSONObject json)

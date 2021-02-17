@@ -108,7 +108,7 @@ public class Map {
                     type = CellType.LAVA;
                     break;
                 default:
-                    System.err.format("[ERROR] Unknown String %s",
+                    System.err.format("[ERROR] Unknown String %s\n",
                             cellData.getString("type"));
                 }
 
@@ -116,24 +116,33 @@ public class Map {
                     continue;
                 }
 
-                JSONObject powerup = cellData.getJSONObject("powerup");
+                JSONObject powerup;
+                try {
+                    powerup = cellData.getJSONObject("powerup");
+                } catch (JSONException e) {
+                    powerup = null;
+                }
                 if (powerup != null) {
                     switch (powerup.getString("type")) {
                     case "HEALTH_PACK":
                         switch (type) {
                         case AIR:
                             type = CellType.AIR_HPACK;
+                            break;
                         case DIRT:
                             type = CellType.DIRT_HPACK;
+                            break;
                         case LAVA:
                             type = CellType.LAVA_HPACK;
+                            break;
                         default:
                             System.err.format(
-                                    "[WARNING] HEALTH_PACK not supported in %s",
+                                    "[WARNING] HEALTH_PACK not supported in %s\n",
                                     type.toString());
                         }
+                        break;
                     default:
-                        System.err.format("[ERROR] Unknown String %s",
+                        System.err.format("[ERROR] Unknown String %s\n",
                                 powerup.getString("type"));
                     }
                 }

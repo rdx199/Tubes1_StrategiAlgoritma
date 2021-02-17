@@ -23,7 +23,7 @@ public class Player {
         }
     }
 
-    public int getId() {
+    public int getID() {
         return id;
     }
 
@@ -52,7 +52,7 @@ public class Player {
         this.worms = new Worm[worms.length()];
         for (int i = 0; i < worms.length(); i++) {
             JSONObject worm = worms.getJSONObject(i);
-            this.worms[i] = new Worm(worm.getInt("id"));
+            this.worms[i] = new Worm(worm.getInt("id"), id);
             this.worms[i].parseJSON(worm);
         }
     }
@@ -69,7 +69,7 @@ public class Player {
         this.worms = new Worm[worms.length()];
         for (int i = 0; i < worms.length(); i++) {
             JSONObject worm = worms.getJSONObject(i);
-            this.worms[i] = new WormExt(worm.getInt("id"));
+            this.worms[i] = new WormExt(worm.getInt("id"), id);
             this.worms[i].parseJSON(worm);
         }
     }

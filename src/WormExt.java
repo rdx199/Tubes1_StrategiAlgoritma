@@ -7,8 +7,8 @@ public class WormExt extends Worm {
     private int bananaDamage, bananaRange, bananaRadius, bananaCount;
     private int snowballDuration, snowballRange, snowballRadius, snowballCount;
 
-    public WormExt(int id) {
-        super(id);
+    public WormExt(int id, int playerId) {
+        super(id, playerId);
         weaponDamage = weaponRange = 0;
         bananaDamage = bananaRange = bananaRadius = bananaCount = 0;
         snowballDuration = snowballRange = snowballRadius = snowballCount = 0;
@@ -81,13 +81,23 @@ public class WormExt extends Worm {
             throws JSONException, IDMismatchException {
         super.parseJSON(json);
 
-        JSONObject weapon = json.getJSONObject("weapon");
+        JSONObject weapon;
+        try {
+            weapon = json.getJSONObject("weapon");
+        } catch (JSONException e) {
+            weapon = null;
+        }
         if (weapon != null) {
             weaponDamage = weapon.getInt("damage");
             weaponRange = weapon.getInt("range");
         }
 
-        JSONObject banana = json.getJSONObject("bananaBombs");
+        JSONObject banana;
+        try {
+            banana = json.getJSONObject("bananaBombs");
+        } catch (JSONException e) {
+            banana = null;
+        }
         if (banana != null) {
             bananaDamage = banana.getInt("damage");
             bananaRange = banana.getInt("range");
@@ -95,7 +105,12 @@ public class WormExt extends Worm {
             bananaCount = banana.getInt("count");
         }
 
-        JSONObject snowball = json.getJSONObject("snowballs");
+        JSONObject snowball;
+        try {
+            snowball = json.getJSONObject("snowballs");
+        } catch (JSONException e) {
+            snowball = null;
+        }
         if (snowball != null) {
             snowballDuration = snowball.getInt("freezeDuration");
             snowballRange = snowball.getInt("range");

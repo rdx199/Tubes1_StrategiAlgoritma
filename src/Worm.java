@@ -3,7 +3,7 @@ import org.json.JSONObject;
 
 public class Worm implements Cloneable {
 
-    private final int id;
+    private final int id, playerId;
     private int health;
     private Coord pos;
 
@@ -15,8 +15,9 @@ public class Worm implements Cloneable {
 
     // TODO: Extended stuff (in new class)
 
-    public Worm(int id) {
+    public Worm(int id, int playerId) {
         this.id = id;
+        this.playerId = playerId;
         health = 0;
         pos = new Coord(0, 0);
         diggingRange = 0;
@@ -27,6 +28,7 @@ public class Worm implements Cloneable {
 
     public Worm(final Worm src) {
         id = src.id;
+        playerId = src.playerId;
         health = src.health;
         pos = new Coord(src.pos);
         diggingRange = src.diggingRange;
@@ -63,6 +65,10 @@ public class Worm implements Cloneable {
 
     public int getID() {
         return id;
+    }
+
+    public int getPlayerID() {
+        return playerId;
     }
 
     public int getDiggingRange() {
