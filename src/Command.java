@@ -96,6 +96,4 @@ public class Command {
     public String cmdString(int roundNo) {
         return String.format("C;%d;%s", roundNo, toString());
     }
-
-    // TODO: Command execute
 }

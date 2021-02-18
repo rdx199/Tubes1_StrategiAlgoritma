@@ -1,5 +1,4 @@
 import java.util.HashMap;
-import java.util.Iterator;
 
 public class CommandExecutor {
 
@@ -66,17 +65,26 @@ public class CommandExecutor {
             throws InvalidCommandException {
         Iterable<Integer> entries = cmdMap.keySet();
 
+        // Alive map
+        HashMap<TempKey, Worm> alive = new HashMap<TempKey, Worm>();
+
+        for (Player p : state.getPlayers())
+            for (Worm w : p.getWorms())
+                if (w.getHealth() > 0)
+                    alive.put(new TempKey(w.getPlayerID(), w.getID()), w);
+
         // Move
         for (Integer i : entries) {
             Command cmd = cmdMap.get(i);
+            Worm worm = state.getPlayerByID(i).getWormByID(cmd.getWormId());
+            if ((worm.getRoundsUntilUnfrozen() > 0) || !alive.containsKey(
+                    new TempKey(worm.getPlayerID(), worm.getID()))) {
+                throw new InvalidCommandException(i, cmd);
+            }
             if (cmd.getCmd() != Command.CommandType.MOVE) {
                 continue;
             }
             Coord target = cmd.getTarget();
-            Worm worm = state.getPlayerByID(i).getWormByID(cmd.getWormId());
-            if (worm.getHealth() <= 0) {
-                throw new InvalidCommandException(i, cmd);
-            }
             Map map = state.getMap();
             Map.Cell cell = map.getCell(target);
             switch (cell.type) {
@@ -103,11 +111,6 @@ public class CommandExecutor {
                 cell.goingToOccupy = false;
                 map.setCell(target, cell);
                 worm.setHealth(worm.getHealth() - state.getPushDamage());
-                if (worm.getHealth() <= 0) {
-                    cell = map.getCell(worm.getPos());
-                    cell.occupied = false;
-                    map.setCell(worm.getPos(), cell);
-                }
             } else {
                 worm.setX(target.getX());
                 worm.setY(target.getY());
@@ -129,10 +132,6 @@ public class CommandExecutor {
                 continue;
             }
             Coord target = cmd.getTarget();
-            Worm worm = state.getPlayerByID(i).getWormByID(cmd.getWormId());
-            if (worm.getHealth() <= 0) {
-                throw new InvalidCommandException(i, cmd);
-            }
             Map map = state.getMap();
             Map.Cell cell = map.getCell(target);
             switch (cell.type) {
@@ -145,14 +144,6 @@ public class CommandExecutor {
             default:
             }
         }
-
-        // Alive map
-        HashMap<TempKey, Worm> alive = new HashMap<TempKey, Worm>();
-
-        for (Player p : state.getPlayers())
-            for (Worm w : p.getWorms())
-                if (w.getHealth() > 0)
-                    alive.put(new TempKey(w.getPlayerID(), w.getID()), w);
 
         // Banana
         for (Integer i : entries) {
@@ -168,12 +159,11 @@ public class CommandExecutor {
             } catch (ClassCastException e) {
                 throw new InvalidCommandException(i, cmd);
             }
-            if (!alive.containsKey(
-                    new TempKey(worm.getPlayerID(), worm.getID()))) {
-                throw new InvalidCommandException(i, cmd);
-            }
             worm.setBananaCount(worm.getBananaCount() - 1);
             Map map = state.getMap();
+            if (map.getCell(target).type == Map.CellType.DEEP_SPACE) {
+                throw new InvalidCommandException(i, cmd);
+            }
             int range = worm.getBananaRadius();
             int damage = worm.getBananaDamage();
             for (Worm w : alive.values()) {
@@ -188,6 +178,11 @@ public class CommandExecutor {
                     continue;
                 w.setHealth(w.getHealth()
                         - (int) (damage / (pos.distance(target) + 1)));
+                if (w.getHealth() <= 0) {
+                    Map.Cell cell = map.getCell(pos);
+                    cell.occupied = false;
+                    map.setCell(pos, cell);
+                }
             }
             for (int x = -range; x <= range; x++) {
                 int end = (x < 0) ? -x : x;
@@ -195,43 +190,102 @@ public class CommandExecutor {
                     Coord pos = new Coord(target.getX() + x, target.getY() + y);
                     Map.Cell cell = map.getCell(pos);
                     switch (cell.type) {
-                    case AIR:
-                        if (cell.occupied) {
-                            Worm occupier = state.occupier(pos);
-                            if ((occupier != null)
-                                    && (occupier.getHealth() > 0)) {
-                                occupier.setHealth(
-                                        occupier.getHealth() - (int) (damage
-                                                / (pos.distance(target) + 1)));
-                                if (occupier.getHealth() <= 0) {
-                                    cell.occupied = false;
-                                    map.setCell(pos, cell);
-                                }
-                            }
-                        }
-                        break;
                     case DIRT:
                         cell.type = Map.CellType.AIR;
-                        map.setCell(pos, cell);
                         break;
                     default:
                     }
+                    cell.hasHpack = false;
+                    map.setCell(pos, cell);
                 }
             }
         }
 
+        // Snowball
+        for (Integer i : entries) {
+            Command cmd = cmdMap.get(i);
+            if (cmd.getCmd() != Command.CommandType.SNOWBALL) {
+                continue;
+            }
+            Coord target = cmd.getTarget();
+            WormExt worm;
+            try {
+                worm = (WormExt) state.getPlayerByID(i)
+                        .getWormByID(cmd.getWormId());
+            } catch (ClassCastException e) {
+                throw new InvalidCommandException(i, cmd);
+            }
+            worm.setSnowballCount(worm.getSnowballCount() - 1);
+            Map map = state.getMap();
+            if (map.getCell(target).type == Map.CellType.DEEP_SPACE) {
+                throw new InvalidCommandException(i, cmd);
+            }
+            int range = worm.getSnowballRadius();
+            int freeze = worm.getSnowballDuration();
+            for (Worm w : alive.values()) {
+                Coord pos = w.getPos();
+                int dx = pos.getX() - target.getX();
+                if (dx < 0)
+                    dx = -dx;
+                int dy = pos.getY() - target.getY();
+                if (dy < 0)
+                    dy = -dy;
+                if (dy > dx)
+                    dx = dy;
+                if (dx > range)
+                    continue;
+                w.setRoundsUntilUnfrozen(w.getRoundsUntilUnfrozen() + freeze);
+            }
+        }
+
+        // Shoot
+        for (Integer i : entries) {
+            Command cmd = cmdMap.get(i);
+            if (cmd.getCmd() != Command.CommandType.SHOOT) {
+                continue;
+            }
+            Coord target = cmd.getTarget();
+            WormExt worm;
+            try {
+                worm = (WormExt) state.getPlayerByID(i)
+                        .getWormByID(cmd.getWormId());
+            } catch (ClassCastException e) {
+                throw new InvalidCommandException(i, cmd);
+            }
+            Coord.Direction dir = cmd.getDirection();
+            Map map = state.getMap();
+            Coord pos = new Coord(target);
+            int damage = worm.getWeaponDamage();
+            float maxDist = (float) (worm.getWeaponRange() + 1);
+            pos.moveToDirection(dir);
+            while (target.distance(pos) < maxDist) {
+                Map.Cell cell = map.getCell(pos);
+                if (cell.type == Map.CellType.DIRT) {
+                    break;
+                }
+                if (cell.occupied) {
+                    Worm w = state.occupier(pos);
+                    w.setHealth(w.getHealth() - damage);
+                    if (w.getHealth() <= 0) {
+                        cell.occupied = false;
+                        map.setCell(pos, cell);
+                    }
+                    break;
+                }
+                pos.moveToDirection(dir);
+            }
+        }
+
+        // Remove the dead
         {
             Map map = state.getMap();
-            Iterator<Worm> it = alive.values().iterator();
-            while (it.hasNext()) {
-                Worm worm = it.next();
+            for (Worm worm : alive.values()) {
                 if (worm.getHealth() > 0)
                     continue;
                 Coord pos = worm.getPos();
                 Map.Cell cell = map.getCell(pos);
                 cell.occupied = false;
                 map.setCell(pos, cell);
-                it.remove();
             }
         }
     }
