@@ -264,12 +264,19 @@ public class CommandExecutor {
                     break;
                 }
                 if (cell.occupied) {
-                    Worm w = state.occupier(pos);
-                    w.setHealth(w.getHealth() - damage);
-                    if (w.getHealth() <= 0) {
-                        cell.occupied = false;
-                        map.setCell(pos, cell);
+                    boolean found = false;
+                    for (Worm w : alive.values()) {
+                        if (!w.getPos().equals(pos))
+                            continue;
+                        w.setHealth(w.getHealth() - damage);
+                        if (w.getHealth() <= 0) {
+                            cell.occupied = false;
+                            map.setCell(pos, cell);
+                        }
+                        found = true;
+                        break;
                     }
+                    assert found;
                     break;
                 }
                 pos.moveToDirection(dir);

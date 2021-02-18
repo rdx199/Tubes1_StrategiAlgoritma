@@ -14,18 +14,29 @@ public class WormExt extends Worm {
         snowballDuration = snowballRange = snowballRadius = snowballCount = 0;
     }
 
+    public WormExt(final Worm src_) {
+        super(src_);
+        try {
+            WormExt src = (WormExt) src_;
+            weaponDamage = src.weaponDamage;
+            weaponRange = src.weaponRange;
+            bananaDamage = src.bananaDamage;
+            bananaRange = src.bananaRange;
+            bananaRadius = src.bananaRadius;
+            bananaCount = src.bananaCount;
+            snowballDuration = src.snowballDuration;
+            snowballRange = src.snowballRange;
+            snowballRadius = src.snowballRadius;
+            snowballCount = src.snowballCount;
+        } catch (ClassCastException e) {
+            weaponDamage = weaponRange = 0;
+            bananaDamage = bananaRange = bananaRadius = bananaCount = 0;
+            snowballDuration = snowballRange = snowballRadius = snowballCount = 0;
+        }
+    }
+
     public WormExt(final WormExt src) {
         super(src);
-        weaponDamage = src.weaponDamage;
-        weaponRange = src.weaponRange;
-        bananaDamage = src.bananaDamage;
-        bananaRange = src.bananaRange;
-        bananaRadius = src.bananaRadius;
-        bananaCount = src.bananaCount;
-        snowballDuration = src.snowballDuration;
-        snowballRange = src.snowballRange;
-        snowballRadius = src.snowballRadius;
-        snowballCount = src.snowballCount;
     }
 
     public int getWeaponDamage() {
@@ -74,6 +85,43 @@ public class WormExt extends Worm {
 
     public void setSnowballCount(int snowballCount) {
         this.snowballCount = snowballCount;
+    }
+
+    public static WormExt tryUpgrade(Worm from) {
+        try {
+            return (WormExt) from;
+        } catch (ClassCastException e) {
+            switch (from.getProfession()) {
+            case "Commando": {
+                WormExt ret = new WormExt(from);
+                ret.weaponDamage = 8;
+                ret.weaponRange = 4;
+                return ret;
+            }
+            case "Agent": {
+                WormExt ret = new WormExt(from);
+                ret.weaponDamage = 8;
+                ret.weaponRange = 4;
+                ret.bananaDamage = 20;
+                ret.bananaRange = 5;
+                ret.bananaRadius = 2;
+                ret.bananaCount = 1;
+                return ret;
+            }
+            case "Technologist": {
+                WormExt ret = new WormExt(from);
+                ret.weaponDamage = 8;
+                ret.weaponRange = 4;
+                ret.snowballDuration = 5;
+                ret.snowballRange = 5;
+                ret.snowballRadius = 1;
+                ret.snowballCount = 1;
+                return ret;
+            }
+            default:
+                return null;
+            }
+        }
     }
 
     @Override

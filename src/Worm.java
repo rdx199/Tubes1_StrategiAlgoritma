@@ -38,7 +38,7 @@ public class Worm implements Cloneable {
     }
 
     public Object clone() throws CloneNotSupportedException {
-        Worm w = (Worm) this.clone();
+        Worm w = (Worm) super.clone();
         w.pos = (Coord) w.pos.clone();
         return w;
     }
@@ -109,6 +109,18 @@ public class Worm implements Cloneable {
 
     public boolean isBounded(final BBox bbox) {
         return pos.isBounded(bbox);
+    }
+
+    public void copyFrom(final Worm src) {
+        if (id != src.id) {
+            throw new IllegalArgumentException("Player ID mismatch");
+        }
+        health = src.health;
+        pos.setX(src.getX());
+        pos.setY(src.getY());
+        diggingRange = src.diggingRange;
+        movementRange = src.movementRange;
+        profession = src.profession;
     }
 
     public void parseJSON(JSONObject json)

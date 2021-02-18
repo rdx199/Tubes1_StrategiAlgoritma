@@ -3,7 +3,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Map {
+public class Map implements Cloneable {
 
     private int width, height;
 
@@ -101,6 +101,12 @@ public class Map {
         parseJSON(json.getJSONArray("map"));
     }
 
+    public Object clone() throws CloneNotSupportedException {
+        Map m = (Map) super.clone();
+        m.data = m.data.clone();
+        return m;
+    }
+
     public int getWidth() {
         return width;
     }
@@ -133,6 +139,15 @@ public class Map {
 
     public BBox makeBBox() {
         return new BBox(width, height);
+    }
+
+    public void copyFrom(final Map src) {
+        if ((width != src.width) && (height != src.height)) {
+            throw new IllegalArgumentException("Source map size mismatch");
+        }
+        for (int i = 0; i < data.length; i++) {
+            data[i] = src.data[i];
+        }
     }
 
     public void parseJSON(JSONArray mapData) throws JSONException {

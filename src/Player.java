@@ -2,7 +2,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Player {
+public class Player implements Cloneable {
 
     private final int id;
     private Worm[] worms;
@@ -23,6 +23,15 @@ public class Player {
         }
     }
 
+    public Object clone() throws CloneNotSupportedException {
+        Player p = (Player) super.clone();
+        p.worms = new Worm[worms.length];
+        for (int i = 0; i < worms.length; i++) {
+            p.worms[i] = (Worm) worms[i].clone();
+        }
+        return p;
+    }
+
     public int getID() {
         return id;
     }
@@ -38,6 +47,15 @@ public class Player {
             }
         }
         return null;
+    }
+
+    public void copyFrom(final Player src) {
+        if (id != src.id) {
+            throw new IllegalArgumentException("Player ID mismatch");
+        }
+        for (Worm worm : worms) {
+            worm.copyFrom(getWormByID(worm.getID()));
+        }
     }
 
     public void parseJSON(JSONObject json)

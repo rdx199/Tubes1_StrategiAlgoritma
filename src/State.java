@@ -2,7 +2,7 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class State {
+public class State implements Cloneable {
 
     private Map map;
     private Player[] players;
@@ -18,6 +18,16 @@ public class State {
 
     public State(JSONObject json) throws JSONException, IDMismatchException {
         parseJSON(json);
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+        State s = (State) super.clone();
+        s.map = (Map) s.map.clone();
+        s.players = new Player[players.length];
+        for (int i = 0; i < players.length; i++) {
+            s.players[i] = (Player) players[i].clone();
+        }
+        return s;
     }
 
     public Map getMap() {
@@ -60,6 +70,16 @@ public class State {
         return null;
     }
 
+    public void copyFrom(final State src) {
+        myPlayerID = src.myPlayerID;
+        pushDamage = src.pushDamage;
+        lavaDamage = src.lavaDamage;
+        map.copyFrom(src.map);
+        for (Player p : players) {
+            p.copyFrom(src.getPlayerByID(p.getID()));
+        }
+    }
+
     public void parseJSON(JSONObject json)
             throws JSONException, IDMismatchException {
         pushDamage = json.getInt("pushbackDamage");
@@ -83,6 +103,12 @@ public class State {
             JSONObject playerJSON = opponents.getJSONObject(i);
             Player player = new Player(playerJSON.getInt("id"));
             player.parseJSON(playerJSON);
+            Worm[] worms = player.getWorms();
+            for (int j = 0; j < worms.length; j++) {
+                WormExt worm = WormExt.tryUpgrade(worms[j]);
+                if (worm != null)
+                    worms[j] = worm;
+            }
             players[i] = player;
         }
     }
