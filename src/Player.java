@@ -54,7 +54,7 @@ public class Player implements Cloneable {
             throw new IllegalArgumentException("Player ID mismatch");
         }
         for (Worm worm : worms) {
-            worm.copyFrom(getWormByID(worm.getID()));
+            worm.copyFrom(src.getWormByID(worm.getID()));
         }
     }
 

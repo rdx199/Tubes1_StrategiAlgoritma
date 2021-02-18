@@ -17,14 +17,14 @@ public class Map implements Cloneable {
         public boolean occupied;
 
         // Temporary stuff
-        public boolean goingToOccupy;
+        public int goingToOccupy;
 
         public Cell(CellType type, boolean hasHpack, boolean occupied) {
             this.type = type;
             this.hasHpack = hasHpack;
             this.occupied = occupied;
 
-            goingToOccupy = false;
+            goingToOccupy = 0;
         }
 
         public Cell() {
@@ -32,13 +32,13 @@ public class Map implements Cloneable {
             hasHpack = false;
             occupied = false;
 
-            goingToOccupy = false;
+            goingToOccupy = 0;
         }
 
         private static final int hpackFlag = 0x8000_0000;
         private static final int occupiedFlag = 0x4000_0000;
 
-        private static final int goingToOccupyFlag = 0x8000;
+        private static final int goingToOccupyShift = 16 - 2;
 
         Cell(int data) {
             type = switch (data & 3) {
@@ -51,7 +51,7 @@ public class Map implements Cloneable {
             };
             hasHpack = (data & hpackFlag) != 0;
             occupied = (data & occupiedFlag) != 0;
-            goingToOccupy = (data & goingToOccupyFlag) != 0;
+            goingToOccupy = (data >> goingToOccupyShift) & 3;
         }
 
         static int toInt(Cell cell) {
@@ -62,7 +62,10 @@ public class Map implements Cloneable {
             case LAVA -> 3;
             } | (cell.hasHpack ? hpackFlag : 0)
                     | (cell.occupied ? occupiedFlag : 0)
-                    | (cell.goingToOccupy ? goingToOccupyFlag : 0);
+                    | (((cell.goingToOccupy > 3) ? 3
+                            : ((cell.goingToOccupy < 0) ? 0
+                                    : cell.goingToOccupy
+                                            & 3)) << goingToOccupyShift);
         }
     }
 
@@ -160,17 +163,24 @@ public class Map implements Cloneable {
                 int y = cellData.getInt("y");
 
                 Cell cell = new Cell(0);
-                cell.type = switch (cellData.getString("type")) {
-                case "DEEP_SPACE" -> CellType.DEEP_SPACE;
-                case "AIR" -> CellType.AIR;
-                case "DIRT" -> CellType.DIRT;
-                case "LAVA" -> CellType.LAVA;
-                default -> {
+                switch (cellData.getString("type")) {
+                case "DEEP_SPACE":
+                    cell.type = CellType.DEEP_SPACE;
+                    break;
+                case "AIR":
+                    cell.type = CellType.AIR;
+                    break;
+                case "DIRT":
+                    cell.type = CellType.DIRT;
+                    break;
+                case "LAVA":
+                    cell.type = CellType.LAVA;
+                    break;
+                default:
                     System.err.format("[ERROR] Unknown String %s\n",
                             cellData.getString("type"));
                     continue;
                 }
-                };
 
                 JSONObject powerup;
                 try {

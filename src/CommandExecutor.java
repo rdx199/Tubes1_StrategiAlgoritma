@@ -76,6 +76,9 @@ public class CommandExecutor {
         // Move
         for (Integer i : entries) {
             Command cmd = cmdMap.get(i);
+            if (cmd.getCmd() == Command.CommandType.NOTHING) {
+                continue;
+            }
             Worm worm = state.getPlayerByID(i).getWormByID(cmd.getWormId());
             if ((worm.getRoundsUntilUnfrozen() > 0) || !alive.containsKey(
                     new TempKey(worm.getPlayerID(), worm.getID()))) {
@@ -87,6 +90,9 @@ public class CommandExecutor {
             Coord target = cmd.getTarget();
             Map map = state.getMap();
             Map.Cell cell = map.getCell(target);
+            if (cell.occupied) {
+                throw new InvalidCommandException(i, cmd);
+            }
             switch (cell.type) {
             case AIR:
             case LAVA:
@@ -94,7 +100,7 @@ public class CommandExecutor {
             default:
                 throw new InvalidCommandException(i, cmd);
             }
-            cell.goingToOccupy = true;
+            cell.goingToOccupy += 1;
             map.setCell(target, cell);
         }
 
@@ -107,21 +113,20 @@ public class CommandExecutor {
             Worm worm = state.getPlayerByID(i).getWormByID(cmd.getWormId());
             Map map = state.getMap();
             Map.Cell cell = map.getCell(target);
-            if (cell.goingToOccupy) {
-                cell.goingToOccupy = false;
-                map.setCell(target, cell);
+            if (cell.goingToOccupy > 1) {
                 worm.setHealth(worm.getHealth() - state.getPushDamage());
             } else {
+                cell.occupied = false;
+                map.setCell(worm.getPos(), cell);
                 worm.setX(target.getX());
                 worm.setY(target.getY());
                 if (state.getMap().getCell(target).hasHpack) {
                     worm.setHealth(worm.getHealth() + 10); // XXX: Health
                 }
+                cell.goingToOccupy = 0;
                 cell.occupied = true;
                 map.setCell(target, cell);
                 cell = map.getCell(worm.getPos());
-                cell.occupied = false;
-                map.setCell(worm.getPos(), cell);
             }
         }
 
@@ -244,7 +249,6 @@ public class CommandExecutor {
             if (cmd.getCmd() != Command.CommandType.SHOOT) {
                 continue;
             }
-            Coord target = cmd.getTarget();
             WormExt worm;
             try {
                 worm = (WormExt) state.getPlayerByID(i)
@@ -254,11 +258,12 @@ public class CommandExecutor {
             }
             Coord.Direction dir = cmd.getDirection();
             Map map = state.getMap();
-            Coord pos = new Coord(target);
+            Coord from = worm.getPos();
+            Coord pos = new Coord(from);
             int damage = worm.getWeaponDamage();
             float maxDist = (float) (worm.getWeaponRange() + 1);
             pos.moveToDirection(dir);
-            while (target.distance(pos) < maxDist) {
+            while (from.distance(pos) < maxDist) {
                 Map.Cell cell = map.getCell(pos);
                 if (cell.type == Map.CellType.DIRT) {
                     break;
