@@ -20,6 +20,15 @@ public class Command {
         setNothing();
     }
 
+    public Object clone() throws CloneNotSupportedException {
+        Command c = new Command(wormId);
+        c.cmd = cmd;
+        if (target != null)
+            c.target = (Coord) target.clone();
+        c.direction = direction;
+        return c;
+    }
+
     public int getWormId() {
         return wormId;
     }
