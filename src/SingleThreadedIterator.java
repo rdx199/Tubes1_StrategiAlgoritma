@@ -186,7 +186,8 @@ public class SingleThreadedIterator extends MoveIterator {
 
             @Override
             public boolean hasNext() {
-                return (cmd != null) && (y != (endy - 1)) && (x != (endx - 1));
+                return (cmd != null)
+                        && ((y != (endy - 1)) || (x != (endx - 1)));
             }
 
             @Override
@@ -285,7 +286,7 @@ public class SingleThreadedIterator extends MoveIterator {
 
         @Override
         public boolean hasNext() {
-            return ix != arr.length;
+            return (ix != arr.length) || subiter.hasNext();
         }
 
         @Override

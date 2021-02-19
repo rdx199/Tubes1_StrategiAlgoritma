@@ -272,7 +272,7 @@ public class CommandExecutor {
                 try {
                     cell = map.getCell(pos);
                 } catch (IndexOutOfBoundsException e) {
-                    continue;
+                    break;
                 }
                 if (cell.type == Map.CellType.DIRT) {
                     break;
