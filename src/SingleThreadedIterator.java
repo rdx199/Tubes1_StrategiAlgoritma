@@ -307,8 +307,7 @@ public class SingleThreadedIterator extends MoveIterator {
         HashMap<Integer, Command> cmd = new HashMap<Integer, Command>();
 
         try {
-            BBox bbox = new BBox(2, state.getMap().getWidth() - 3, 2,
-                    state.getMap().getHeight() - 3);
+            BBox bbox = state.getMap().makeBBox();
             Command bestCmd = new Command();
             State best = (State) state.clone();
             State last = (State) best.clone();

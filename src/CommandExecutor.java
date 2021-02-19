@@ -144,9 +144,8 @@ public class CommandExecutor {
                 cell.type = Map.CellType.AIR;
                 map.setCell(target, cell);
                 break;
-            case DEEP_SPACE:
-                throw new InvalidCommandException(i, cmd);
             default:
+                throw new InvalidCommandException(i, cmd);
             }
         }
 
@@ -193,7 +192,12 @@ public class CommandExecutor {
                 int end = (x < 0) ? -x : x;
                 for (int y = -end; y <= end; y++) {
                     Coord pos = new Coord(target.getX() + x, target.getY() + y);
-                    Map.Cell cell = map.getCell(pos);
+                    Map.Cell cell;
+                    try {
+                        cell = map.getCell(pos);
+                    } catch (IndexOutOfBoundsException e) {
+                        continue;
+                    }
                     switch (cell.type) {
                     case DIRT:
                         cell.type = Map.CellType.AIR;
@@ -264,7 +268,12 @@ public class CommandExecutor {
             float maxDist = (float) (worm.getWeaponRange() + 1);
             pos.moveToDirection(dir);
             while (from.distance(pos) < maxDist) {
-                Map.Cell cell = map.getCell(pos);
+                Map.Cell cell;
+                try {
+                    cell = map.getCell(pos);
+                } catch (IndexOutOfBoundsException e) {
+                    continue;
+                }
                 if (cell.type == Map.CellType.DIRT) {
                     break;
                 }
