@@ -45,6 +45,7 @@ public class Coord implements Cloneable {
         return super.clone();
     }
 
+    // setter dan getter
     public int getX() {
         return x;
     }
