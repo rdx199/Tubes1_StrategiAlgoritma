@@ -299,12 +299,15 @@ public class CommandExecutor {
 
         // Remove the dead
         {
+            int damage = state.getLavaDamage();
             Map map = state.getMap();
             for (Worm worm : alive.values()) {
-                if (worm.getHealth() > 0)
-                    continue;
                 Coord pos = worm.getPos();
                 Map.Cell cell = map.getCell(pos);
+                if (cell.type == Map.CellType.LAVA)
+                    worm.setHealth(worm.getHealth() - damage);
+                if (worm.getHealth() > 0)
+                    continue;
                 cell.occupied = false;
                 map.setCell(pos, cell);
             }
