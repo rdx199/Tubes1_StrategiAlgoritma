@@ -3,11 +3,11 @@ public class BBox {
     private int xmin, xmax, ymin, ymax;
 
     public BBox(int xmin, int xmax, int ymin, int ymax) {
-        if (xmin < xmax) {
-            throw new IllegalArgumentException("xmin < xmax");
+        if (xmin > xmax) {
+            throw new IllegalArgumentException("xmin > xmax");
         }
-        if (ymin < ymax) {
-            throw new IllegalArgumentException("ymin < ymax");
+        if (ymin > ymax) {
+            throw new IllegalArgumentException("ymin > ymax");
         }
 
         this.xmin = xmin;
@@ -34,8 +34,8 @@ public class BBox {
     }
 
     public void setXmin(int xmin) {
-        if (xmin < xmax) {
-            throw new IllegalArgumentException("xmin < xmax");
+        if (xmin > xmax) {
+            throw new IllegalArgumentException("xmin > xmax");
         }
         this.xmin = xmin;
     }
@@ -45,8 +45,8 @@ public class BBox {
     }
 
     public void setXmax(int xmax) {
-        if (xmin < xmax) {
-            throw new IllegalArgumentException("xmin < xmax");
+        if (xmin > xmax) {
+            throw new IllegalArgumentException("xmin > xmax");
         }
         this.xmax = xmax;
     }
@@ -56,8 +56,8 @@ public class BBox {
     }
 
     public void setYmin(int ymin) {
-        if (ymin < ymax) {
-            throw new IllegalArgumentException("ymin < ymax");
+        if (ymin > ymax) {
+            throw new IllegalArgumentException("ymin > ymax");
         }
         this.ymin = ymin;
     }
@@ -67,8 +67,8 @@ public class BBox {
     }
 
     public void setYmax(int ymax) {
-        if (ymin < ymax) {
-            throw new IllegalArgumentException("ymin < ymax");
+        if (ymin > ymax) {
+            throw new IllegalArgumentException("ymin > ymax");
         }
         this.ymax = ymax;
     }

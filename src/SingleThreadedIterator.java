@@ -177,8 +177,8 @@ public class SingleThreadedIterator extends MoveIterator {
                         throw new ClassCastException();
                     cmd = new Command();
                     y = yst;
-                    x = dlx[(y + yst) * 2];
-                    endx = dlx[(y + yst) * 2 + 1];
+                    x = dlx[(y - yst) * 2];
+                    endx = dlx[(y - yst) * 2 + 1];
                 } catch (ClassCastException e) {
                     cmd = null;
                 }
@@ -186,20 +186,20 @@ public class SingleThreadedIterator extends MoveIterator {
 
             @Override
             public boolean hasNext() {
-                return (cmd != null) && (y != endy);
+                return (cmd != null) && (y != (endy - 1)) && (x != (endx - 1));
             }
 
             @Override
             public Command next() throws NoSuchElementException {
                 cmd.setBanana(new Coord(x + w.getX(), y + w.getY()));
-                if (x < endx)
-                    x += 1;
-                else if (y < endy) {
-                    y += 1;
-                    x = dlx[(y + yst) * 2];
-                    endx = dlx[(y + yst) * 2 + 1];
-                } else
-                    throw new NoSuchElementException();
+                x++;
+                if (x >= endx) {
+                    y++;
+                    if (y >= endy)
+                        throw new NoSuchElementException();
+                    x = dlx[(y - yst) * 2];
+                    endx = dlx[(y - yst) * 2 + 1];
+                }
                 return cmd;
             }
         }
@@ -307,6 +307,8 @@ public class SingleThreadedIterator extends MoveIterator {
         HashMap<Integer, Command> cmd = new HashMap<Integer, Command>();
 
         try {
+            BBox bbox = new BBox(2, state.getMap().getWidth() - 3, 2,
+                    state.getMap().getHeight() - 3);
             Command bestCmd = new Command();
             State best = (State) state.clone();
             State last = (State) best.clone();
@@ -317,12 +319,20 @@ public class SingleThreadedIterator extends MoveIterator {
                     state.getPlayerByID(myPid));
             while (itp.hasNext()) {
                 last.copyFrom(best);
-                cmd.put(myPid, itp.next());
+                Command cmdp = itp.next();
+                if ((cmdp.getTarget() != null)
+                        && !cmdp.getTarget().isBounded(bbox))
+                    continue;
+                cmd.put(myPid, cmdp);
                 int opponentPid = (myPid == 1) ? 2 : 1;
                 Iterator<Command> ito = new PlayerIterator(
                         state.getPlayerByID(opponentPid));
                 while (ito.hasNext()) {
-                    cmd.put(opponentPid, ito.next());
+                    Command cmdo = ito.next();
+                    if ((cmdo.getTarget() != null)
+                            && !cmdo.getTarget().isBounded(bbox))
+                        continue;
+                    cmd.put(opponentPid, cmdo);
                     cur.copyFrom(state);
                     try {
                         CommandExecutor.execute(cur, cmd);
