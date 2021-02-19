@@ -1,25 +1,85 @@
 
 import org.json.JSONArray;
+import org.json.JSONException;
 import org.json.JSONObject;
 
-public class Map {
+public class Map implements Cloneable {
+
     private int width, height;
 
-    public enum CellType {
-        DEEP_SPACE, AIR, DIRT, LAVA, AIR_HPACK, DIRT_HPACK, LAVA_HPACK,
+    public static enum CellType {
+        DEEP_SPACE, AIR, DIRT, LAVA,
     };
 
-    private CellType[] data;
+    public static class Cell implements Cloneable {
+        public CellType type;
+        public boolean hasHpack;
+        public boolean occupied;
+
+        // Temporary stuff
+        public int goingToOccupy;
+
+        public Cell(CellType type, boolean hasHpack, boolean occupied) {
+            this.type = type;
+            this.hasHpack = hasHpack;
+            this.occupied = occupied;
+
+            goingToOccupy = 0;
+        }
+
+        public Cell() {
+            type = CellType.DEEP_SPACE;
+            hasHpack = false;
+            occupied = false;
+
+            goingToOccupy = 0;
+        }
+
+        private static final int hpackFlag = 0x8000_0000;
+        private static final int occupiedFlag = 0x4000_0000;
+
+        private static final int goingToOccupyShift = 16 - 2;
+
+        Cell(int data) {
+            type = switch (data & 3) {
+            case 0 -> CellType.DEEP_SPACE;
+            case 1 -> CellType.AIR;
+            case 2 -> CellType.DIRT;
+            case 3 -> CellType.LAVA;
+            default -> throw new IllegalArgumentException(
+                    String.format("Invalid data %x", data));
+            };
+            hasHpack = (data & hpackFlag) != 0;
+            occupied = (data & occupiedFlag) != 0;
+            goingToOccupy = (data >> goingToOccupyShift) & 3;
+        }
+
+        static int toInt(Cell cell) {
+            return switch (cell.type) {
+            case DEEP_SPACE -> 0;
+            case AIR -> 1;
+            case DIRT -> 2;
+            case LAVA -> 3;
+            } | (cell.hasHpack ? hpackFlag : 0)
+                    | (cell.occupied ? occupiedFlag : 0)
+                    | (((cell.goingToOccupy > 3) ? 3
+                            : ((cell.goingToOccupy < 0) ? 0
+                                    : cell.goingToOccupy
+                                            & 3)) << goingToOccupyShift);
+        }
+    }
+
+    private int[] data;
 
     public Map(int width, int height) {
         this.width = width;
         this.height = height;
 
         int n = this.width * this.height;
-        data = new CellType[n];
+        data = new int[n];
 
         for (int i = 0; i < n; i++) {
-            data[i] = CellType.DEEP_SPACE;
+            data[i] = 0;
         }
     }
 
@@ -27,26 +87,27 @@ public class Map {
         width = src.width;
         height = src.height;
 
-        int n = width * height;
-        data = new CellType[n];
-
-        for (int i = 0; i < n; i++) {
-            data[i] = src.data[i];
-        }
+        data = src.data.clone();
     }
 
-    public Map(JSONObject json) {
+    public Map(JSONObject json) throws JSONException {
         int mapSize = json.getInt("mapSize");
         width = height = mapSize;
 
         int n = width * height;
-        data = new CellType[n];
+        data = new int[n];
 
         for (int i = 0; i < n; i++) {
-            data[i] = CellType.DEEP_SPACE;
+            data[i] = 0;
         }
 
         parseJSON(json.getJSONArray("map"));
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+        Map m = (Map) super.clone();
+        m.data = m.data.clone();
+        return m;
     }
 
     public int getWidth() {
@@ -57,25 +118,25 @@ public class Map {
         return height;
     }
 
-    public CellType getCell(int x, int y) {
+    public Cell getCell(int x, int y) {
         if ((x < 0) || (x >= width) || (y < 0) || (y >= height)) {
             throw new IndexOutOfBoundsException("Cell index out of bound");
         }
-        return data[x + y * width];
+        return new Cell(data[x + y * width]);
     }
 
-    public CellType getCell(final Coord c) {
+    public Cell getCell(final Coord c) {
         return getCell(c.getX(), c.getY());
     }
 
-    public void setCell(int x, int y, CellType cell) {
+    public void setCell(int x, int y, final Cell cell) {
         if ((x < 0) || (x >= width) || (y < 0) || (y >= height)) {
             throw new IndexOutOfBoundsException("Cell index out of bound");
         }
-        data[x + y * width] = cell;
+        data[x + y * width] = Cell.toInt(cell);
     }
 
-    public void setCell(final Coord c, CellType cell) {
+    public void setCell(final Coord c, final Cell cell) {
         setCell(c.getX(), c.getY(), cell);
     }
 
@@ -83,7 +144,16 @@ public class Map {
         return new BBox(width, height);
     }
 
-    public void parseJSON(JSONArray mapData) {
+    public void copyFrom(final Map src) {
+        if ((width != src.width) && (height != src.height)) {
+            throw new IllegalArgumentException("Source map size mismatch");
+        }
+        for (int i = 0; i < data.length; i++) {
+            data[i] = src.data[i];
+        }
+    }
+
+    public void parseJSON(JSONArray mapData) throws JSONException {
         for (int i_ = 0; i_ < mapData.length(); i_++) {
             JSONArray rowData = mapData.getJSONArray(i_);
             for (int j_ = 0; j_ < rowData.length(); j_++) {
@@ -92,53 +162,52 @@ public class Map {
                 int x = cellData.getInt("x");
                 int y = cellData.getInt("y");
 
-                CellType type = null;
+                Cell cell = new Cell(0);
                 switch (cellData.getString("type")) {
                 case "DEEP_SPACE":
-                    type = CellType.DEEP_SPACE;
+                    cell.type = CellType.DEEP_SPACE;
                     break;
                 case "AIR":
-                    type = CellType.AIR;
+                    cell.type = CellType.AIR;
                     break;
                 case "DIRT":
-                    type = CellType.DIRT;
+                    cell.type = CellType.DIRT;
                     break;
                 case "LAVA":
-                    type = CellType.LAVA;
+                    cell.type = CellType.LAVA;
                     break;
                 default:
-                    System.err.format("[ERROR] Unknown String %s",
+                    System.err.format("[ERROR] Unknown String %s\n",
                             cellData.getString("type"));
-                }
-
-                if (type == null) {
                     continue;
                 }
 
-                JSONObject powerup = cellData.getJSONObject("powerup");
+                JSONObject powerup;
+                try {
+                    powerup = cellData.getJSONObject("powerup");
+                } catch (JSONException e) {
+                    powerup = null;
+                }
                 if (powerup != null) {
                     switch (powerup.getString("type")) {
                     case "HEALTH_PACK":
-                        switch (type) {
-                        case AIR:
-                            type = CellType.AIR_HPACK;
-                        case DIRT:
-                            type = CellType.DIRT_HPACK;
-                        case LAVA:
-                            type = CellType.LAVA_HPACK;
-                        default:
-                            System.err.format(
-                                    "[WARNING] HEALTH_PACK not supported in %s",
-                                    type.toString());
-                        }
+                        cell.hasHpack = true;
+                        break;
                     default:
-                        System.err.format("[ERROR] Unknown String %s",
+                        System.err.format("[ERROR] Unknown String %s\n",
                                 powerup.getString("type"));
                     }
                 }
 
                 try {
-                    setCell(x, y, type);
+                    cellData.getJSONObject("occupier");
+                    cell.occupied = true;
+                } catch (JSONException e) {
+                    cell.occupied = false;
+                }
+
+                try {
+                    setCell(x, y, cell);
                 } catch (IndexOutOfBoundsException e) {
                 }
             }

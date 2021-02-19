@@ -1,9 +1,24 @@
+import org.json.JSONObject;
 
-public class Coord {
+public class Coord implements Cloneable {
     private int x, y;
 
-    public enum Direction {
-        N, NE, E, SE, S, SW, W, NW,
+    public static enum Direction {
+        N, NE, E, SE, S, SW, W, NW;
+
+        @Override
+        public String toString() {
+            return switch (this) {
+            case N -> "n";
+            case NE -> "ne";
+            case E -> "e";
+            case SE -> "se";
+            case S -> "s";
+            case SW -> "sw";
+            case W -> "w";
+            case NW -> "nw";
+            };
+        }
     };
 
     public Coord(int x, int y) {
@@ -14,6 +29,10 @@ public class Coord {
     public Coord(final Coord src) {
         x = src.x;
         y = src.y;
+    }
+
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 
     public int getX() {
@@ -32,31 +51,40 @@ public class Coord {
         this.y = y;
     }
 
-    public void moveToDirection(Direction dir) {
+    public void moveToDirection(Direction dir, int amount) {
+        if (amount < 0) {
+            throw new IllegalArgumentException("amount < 0");
+        } else if (amount == 0) {
+            return;
+        }
         switch (dir) {
         case N:
-            y -= 1;
+            y -= amount;
             break;
         case NE:
-            y -= 1;
+            y -= amount;
         case E:
-            x += 1;
+            x += amount;
             break;
         case SE:
-            x += 1;
+            x += amount;
         case S:
-            y += 1;
+            y += amount;
             break;
         case SW:
-            y += 1;
+            y += amount;
         case W:
-            x -= 1;
+            x -= amount;
             break;
         case NW:
-            x -= 1;
-            y -= 1;
+            x -= amount;
+            y -= amount;
             break;
         }
+    }
+
+    public void moveToDirection(Direction dir) {
+        moveToDirection(dir, 1);
     }
 
     public double distance(final Coord to) {
@@ -67,5 +95,34 @@ public class Coord {
 
     public boolean isBounded(final BBox bbox) {
         return bbox.isCoordInBound(this);
+    }
+
+    public static Coord fromJSON(JSONObject json) {
+        return new Coord(json.getInt("x"), json.getInt("y"));
+    }
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 1;
+        result = prime * result + x;
+        result = prime * result + y;
+        return result;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (this == obj)
+            return true;
+        if (obj == null)
+            return false;
+        if (getClass() != obj.getClass())
+            return false;
+        Coord other = (Coord) obj;
+        if (x != other.x)
+            return false;
+        if (y != other.y)
+            return false;
+        return true;
     }
 }
