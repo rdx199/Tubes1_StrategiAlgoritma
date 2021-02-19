@@ -45,7 +45,7 @@ public class Main {
 
                     MoveIterator it = new SingleThreadedIterator();
                     Command command = it.iterateMove(state,
-                            new DummySelector()); // TODO: Selector?
+                            new GreedySelector());
 
                     System.out.format("C;%d;%s\n", roundNumber,
                             command.toString());

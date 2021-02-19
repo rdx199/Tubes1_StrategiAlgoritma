@@ -41,26 +41,46 @@ public class Map implements Cloneable {
         private static final int goingToOccupyShift = 16 - 2;
 
         Cell(int data) {
-            type = switch (data & 3) {
-            case 0 -> CellType.DEEP_SPACE;
-            case 1 -> CellType.AIR;
-            case 2 -> CellType.DIRT;
-            case 3 -> CellType.LAVA;
-            default -> throw new IllegalArgumentException(
-                    String.format("Invalid data %x", data));
-            };
+            switch (data & 3) {
+            case 0:
+                type = CellType.DEEP_SPACE;
+                break;
+            case 1:
+                type = CellType.AIR;
+                break;
+            case 2:
+                type = CellType.DIRT;
+                break;
+            case 3:
+                type = CellType.LAVA;
+                break;
+            default:
+                throw new IllegalArgumentException(
+                        String.format("Invalid data %x", data));
+            }
+            ;
             hasHpack = (data & hpackFlag) != 0;
             occupied = (data & occupiedFlag) != 0;
             goingToOccupy = (data >> goingToOccupyShift) & 3;
         }
 
         static int toInt(Cell cell) {
-            return switch (cell.type) {
-            case DEEP_SPACE -> 0;
-            case AIR -> 1;
-            case DIRT -> 2;
-            case LAVA -> 3;
-            } | (cell.hasHpack ? hpackFlag : 0)
+            int ret = 0;
+            switch (cell.type) {
+            case DEEP_SPACE:
+                ret = 0;
+                break;
+            case AIR:
+                ret = 1;
+                break;
+            case DIRT:
+                ret = 2;
+                break;
+            case LAVA:
+                ret = 3;
+                break;
+            }
+            return ret | (cell.hasHpack ? hpackFlag : 0)
                     | (cell.occupied ? occupiedFlag : 0)
                     | (((cell.goingToOccupy > 3) ? 3
                             : ((cell.goingToOccupy < 0) ? 0

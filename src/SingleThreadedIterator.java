@@ -315,15 +315,8 @@ public class SingleThreadedIterator extends MoveIterator {
             State cur = (State) best.clone();
 
             int myPid = state.getMyPlayerID();
-            Iterator<Command> itp = new PlayerIterator(
-                    state.getPlayerByID(myPid));
-            while (itp.hasNext()) {
-                last.copyFrom(best);
-                Command cmdp = itp.next();
-                if ((cmdp.getTarget() != null)
-                        && !cmdp.getTarget().isBounded(bbox))
-                    continue;
-                cmd.put(myPid, cmdp);
+            {
+                cmd.put(myPid, bestCmd);
                 int opponentPid = (myPid == 1) ? 2 : 1;
                 Iterator<Command> ito = new PlayerIterator(
                         state.getPlayerByID(opponentPid));
@@ -336,6 +329,40 @@ public class SingleThreadedIterator extends MoveIterator {
                     cur.copyFrom(state);
                     try {
                         CommandExecutor.execute(cur, cmd);
+                        if (selector.isStateBetter(best, cur)) {
+                            State temp = cur;
+                            cur = best;
+                            best = temp;
+                        }
+                    } catch (CommandExecutor.InvalidCommandException e) {
+                    }
+                }
+            }
+
+            Iterator<Command> itp = new SingleWormIterator(
+                    state.getPlayerByID(myPid)
+                            .getWormByID(state.getCurrentWormID()));
+            while (itp.hasNext()) {
+                last.copyFrom(state);
+                Command cmdp = itp.next();
+                if ((cmdp.getTarget() != null)
+                        && !cmdp.getTarget().isBounded(bbox))
+                    continue;
+                cmd.put(myPid, cmdp);
+                boolean isMoveValid = false;
+                int opponentPid = (myPid == 1) ? 2 : 1;
+                Iterator<Command> ito = new PlayerIterator(
+                        state.getPlayerByID(opponentPid));
+                while (ito.hasNext()) {
+                    Command cmdo = ito.next();
+                    if ((cmdo.getTarget() != null)
+                            && !cmdo.getTarget().isBounded(bbox))
+                        continue;
+                    cmd.put(opponentPid, cmdo);
+                    cur.copyFrom(state);
+                    try {
+                        CommandExecutor.execute(cur, cmd);
+                        isMoveValid = true;
                         if (selector.isStateBetter(last, cur)) {
                             State temp = cur;
                             cur = last;
@@ -344,6 +371,8 @@ public class SingleThreadedIterator extends MoveIterator {
                     } catch (CommandExecutor.InvalidCommandException e) {
                     }
                 }
+                if (!isMoveValid)
+                    continue;
                 if (selector.isStateBetter(last, best)) {
                     bestCmd = (Command) cmd.get(myPid).clone();
                     State temp = best;

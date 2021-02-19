@@ -7,6 +7,7 @@ public class State implements Cloneable {
     private Map map;
     private Player[] players;
     private int myPlayerID;
+    private int currentWormID;
     private int pushDamage;
     private int lavaDamage;
 
@@ -51,6 +52,10 @@ public class State implements Cloneable {
         return myPlayerID;
     }
 
+    public int getCurrentWormID() {
+        return currentWormID;
+    }
+
     public int getPushDamage() {
         return pushDamage;
     }
@@ -84,6 +89,7 @@ public class State implements Cloneable {
             throws JSONException, IDMismatchException {
         pushDamage = json.getInt("pushbackDamage");
         lavaDamage = json.getInt("lavaDamage");
+        currentWormID = json.getInt("currentWormId");
 
         map = new Map(json);
 

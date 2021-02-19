@@ -8,16 +8,26 @@ public class Coord implements Cloneable {
 
         @Override
         public String toString() {
-            return switch (this) {
-            case N -> "n";
-            case NE -> "ne";
-            case E -> "e";
-            case SE -> "se";
-            case S -> "s";
-            case SW -> "sw";
-            case W -> "w";
-            case NW -> "nw";
-            };
+            switch (this) {
+            case N:
+                return "n";
+            case NE:
+                return "ne";
+            case E:
+                return "e";
+            case SE:
+                return "se";
+            case S:
+                return "s";
+            case SW:
+                return "sw";
+            case W:
+                return "w";
+            case NW:
+                return "nw";
+            default:
+                return null;
+            }
         }
     };
 

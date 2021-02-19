@@ -87,19 +87,22 @@ public class Command {
 
     @Override
     public String toString() {
-        return switch (cmd) {
-        case NOTHING -> "nothing";
-        case MOVE -> String.format("select %d;move %d %d", wormId,
-                target.getX(), target.getY());
-        case DIG -> String.format("select %d;dig %d %d", wormId, target.getX(),
-                target.getY());
-        case SHOOT -> String.format("select %d;shoot %s", wormId,
-                direction.toString());
-        case BANANA -> String.format("select %d;banana %d %d", wormId,
-                target.getX(), target.getY());
-        case SNOWBALL -> String.format("select %d;snowball %d %d", wormId,
-                target.getX(), target.getY());
-        };
+        switch (cmd) {
+        case NOTHING:
+            return "nothing";
+        case MOVE:
+            return String.format("move %d %d", target.getX(), target.getY());
+        case DIG:
+            return String.format("dig %d %d", target.getX(), target.getY());
+        case SHOOT:
+            return String.format("shoot %s", direction.toString());
+        case BANANA:
+            return String.format("banana %d %d", target.getX(), target.getY());
+        case SNOWBALL:
+            return String.format("snowball %d %d", target.getX(),
+                    target.getY());
+        }
+        return null;
     }
 
     public String cmdString(int roundNo) {
