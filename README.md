@@ -1,28 +1,43 @@
-# Tubes1_StrategiAlgoritma
+Assuming a linux environment
 
-Tugas besar Strategi Algoritma
+# Prerequisites
 
-## i. Penjelasan Singkat Algoritma
+Python
 
-Algoritma ini menggunakan _hybrid_ minimax/_greedy_.
+### Installation
 
-## ii. Requirement
+To see which version of Python 3 you have installed, open a command prompt and run
+  ```sh
+  $ python3 --version
+  ```
+If you are using Ubuntu 16.10 or newer, then you can easily install Python 3.6 with the following commands:
+  ```sh
+  $ sudo apt-get update
+  $ sudo apt-get install python3.6
+  ```
+If you’re using another version of Ubuntu (e.g. the latest LTS release) or you want to use a more current Python, we recommend using the deadsnakes PPA to install Python 3.8:
+  ```sh
+  $ sudo apt-get install software-properties-common
+  $ sudo add-apt-repository ppa:deadsnakes/ppa
+  $ sudo apt-get update
+  $ sudo apt-get install python3.8
+  ```
+If you are using other Linux distribution, chances are you already have Python 3 pre-installed as well. If not, use your distribution’s package manager. For example on Fedora, you would use dnf:
+  ```sh
+  $ sudo dnf install python3
+  ```
 
-Program ini membutuhkan _package_ `org.json`, yang dapat di-_download_ di
-link berikut:
+# Run Server and Client
 
-[https://mvnrepository.com/artifact/org.json/json]https://mvnrepository.com/artifact/org.json/json
+Server must be initialized before client
 
-## iii. Cara Menggunakan Program
+- Run Server
+  python3 server.py [port]
+- Run Client
+  python3 client.py [port]
 
-Sudah diberikan _file_ `.jar` di folder `/bin`
+# Program Documentation
 
-Konfigurasi _path_ bot di `game-config.json` _game engine_ untuk menunjukkan
-ke _folder_ repo ini.
-
-## iv. Author
-
-Program ini dibuat oleh:
-- Hanif Arroisi Mukhlis (@Dheatly23)
-- Mhd. Hiro Agayeff Muslion (@rdx199)
-- Farhan Nur Hidayat Denira (@ahandnr)
+- Program is implemented using 3 Way Handshake
+- Frame class is an object template for refactoring every messages that needs to be transferred between peers
+- decodeMessage() function can be used to accept the incoming bit messages and turn it into a Frame object.
